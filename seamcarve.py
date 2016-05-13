@@ -142,7 +142,7 @@ def resize(img, width, height):
         draw_seam(result, seam)
         result = remove_vertical_seam(result, seam)
 
-    cv2.imshow('removed', result)
+    cv2.imshow('resized', result)
     cv2.waitKey(0)
     cv2.destroyAllWindows()
 
