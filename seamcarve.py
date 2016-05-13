@@ -25,7 +25,7 @@ def energy(img):
 
     return cv2.add(np.absolute(dx), np.absolute(dy))
 
-def cumulative_energies(energy):
+def cumulative_energies_vertical(energy):
     height, width = energy.shape[:2]
     energies = np.zeros((height, width))
 
@@ -39,7 +39,43 @@ def cumulative_energies(energy):
 
     return energies
 
-def get_min_seam(energies):
+def cumulative_energies_horizontal(energy):
+    height, width = energy.shape[:2]
+    energies = np.zeros((height, width))
+
+    for j in xrange(1, width):
+        for i in xrange(height):
+            top = energies[i - 1, j - 1] if i - 1 >= 0 else 1e6
+            middle = energies[i, j - 1]
+            bottom = energies[i + 1, j - 1] if i + 1 < height else 1e6
+
+            energies[i, j] = energy[i, j] + min(top, middle, bottom)
+
+    return energies
+
+def horizontal_seam(energies):
+    height, width = energies.shape[:2]
+    previous = 0
+    seam = []
+
+    for i in xrange(width - 1, -1, -1):
+        col = energies[:, i]
+
+        if i == width - 1:
+            previous = np.argmin(col)
+
+        else:
+            top = col[previous - 1] if previous - 1 >= 0 else 1e6
+            middle = col[previous]
+            bottom = col[previous + 1] if previous + 1 < height else 1e6
+
+            previous = previous + np.argmin([top, middle, bottom]) - 1
+
+        seam.append([previous, i])
+
+    return seam
+
+def vertical_seam(energies):
     height, width = energies.shape[:2]
     previous = 0
     seam = []
@@ -66,7 +102,15 @@ def draw_seam(img, seam):
     cv2.waitKey(0)
     cv2.destroyAllWindows()
 
-def remove_seam(img, seam):
+def remove_horizontal_seam(img, seam):
+    height, width, bands = img.shape
+    removed = np.zeros((height - 1, width, bands), np.uint8)
+
+    for x, y in reversed(seam):
+        removed[0:y, x]
+
+
+def remove_vertical_seam(img, seam):
     height, width, bands = img.shape
     removed = np.zeros((height, width - 1, bands), np.uint8)
 
@@ -79,13 +123,13 @@ def remove_seam(img, seam):
 def resize(img):
     result = img
 
-    for i in xrange(50):
-        energies = cumulative_energies(energy(result))
-        seam = get_min_seam(energies)
+    for i in xrange(10):
+        energies = cumulative_energies_horizontal(energy(result))
+        seam = horizontal_seam(energies)
 
-        draw_seam(result, seam)
+        # draw_seam(result, seam)
 
-        result = remove_seam(result, seam)
+        result = remove_horizontal_seam(result, seam)
 
     cv2.imshow('removed', result)
     cv2.waitKey(0)
@@ -93,8 +137,8 @@ def resize(img):
 
 if __name__ == '__main__':
     img = cv2.imread(sys.argv[1])
-    # energies = cumulative_energies(energy(img))
-    # seam = get_min_seam(energies)
+    # energies = cumulative_energies_vertical(energy(img))
+    # seam = vertical_seam(energies)
     # draw_seam(img, seam)
     #
     # removed = remove_seam(img, seam)
