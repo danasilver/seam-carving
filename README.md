@@ -23,3 +23,9 @@ $ python seamcarve.py image width height
 
 This will open a new window that will animate the seams being removed.
 Press any key when the animation is done to close the window.
+
+### References
+
+* [Seam Carving for Content-Aware Image Resizing](http://www.faculty.idc.ac.il/arik/SCWeb/imret/imret.pdf) (PDF)
+* [Seam Carving for Content-Aware Image Resizing](http://www.faculty.idc.ac.il/arik/SCWeb/imret/) (Project Page)
+* [Seam carving, Wikipedia](https://en.wikipedia.org/wiki/Seam_carving)
