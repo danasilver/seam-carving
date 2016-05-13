@@ -146,15 +146,13 @@ def resize(img, width, height):
     cv2.waitKey(0)
     cv2.destroyAllWindows()
 
-if __name__ == '__main__':
-    img = cv2.imread(sys.argv[1])
-    # energies = cumulative_energies_vertical(energy(img))
-    # seam = vertical_seam(energies)
-    # draw_seam(img, seam)
-    #
-    # removed = remove_seam(img, seam)
-    resize(img, int(sys.argv[2]), int(sys.argv[3]))
+def usage(program_name):
+    print 'Usage: python {} image new_width new_height'.format(program_name)
 
-    # cv2.imshow('removed', removed)
-    # cv2.waitKey(0)
-    # cv2.destroyAllWindows()
+if __name__ == '__main__':
+    if len(sys.argv) != 4:
+        usage(sys.argv[0])
+        sys.exit(1)
+
+    img = cv2.imread(sys.argv[1])
+    resize(img, int(sys.argv[2]), int(sys.argv[3]))
