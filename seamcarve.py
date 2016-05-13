@@ -71,7 +71,7 @@ def horizontal_seam(energies):
 
             previous = previous + np.argmin([top, middle, bottom]) - 1
 
-        seam.append([previous, i])
+        seam.append([i, previous])
 
     return seam
 
@@ -99,7 +99,7 @@ def vertical_seam(energies):
 def draw_seam(img, seam):
     cv2.polylines(img, np.int32([np.asarray(seam)]), False, (0, 255, 0))
     cv2.imshow('seam', img)
-    cv2.waitKey(0)
+    cv2.waitKey(1)
     cv2.destroyAllWindows()
 
 def remove_horizontal_seam(img, seam):
@@ -107,8 +107,10 @@ def remove_horizontal_seam(img, seam):
     removed = np.zeros((height - 1, width, bands), np.uint8)
 
     for x, y in reversed(seam):
-        removed[0:y, x]
+        removed[0:y, x] = img[0:y, x]
+        removed[y:width - 1, x] = img[y + 1:width, x]
 
+    return removed
 
 def remove_vertical_seam(img, seam):
     height, width, bands = img.shape
@@ -120,16 +122,25 @@ def remove_vertical_seam(img, seam):
 
     return removed
 
-def resize(img):
+def resize(img, width, height):
     result = img
 
-    for i in xrange(10):
+    img_height, img_width = img.shape[:2]
+
+    dy = img_height - height if img_height - height > 0 else 0
+    dx = img_width - width if img_width - width > 0 else 0
+
+    for i in xrange(dy):
         energies = cumulative_energies_horizontal(energy(result))
         seam = horizontal_seam(energies)
-
-        # draw_seam(result, seam)
-
+        draw_seam(result, seam)
         result = remove_horizontal_seam(result, seam)
+
+    for i in xrange(dx):
+        energies = cumulative_energies_vertical(energy(result))
+        seam = vertical_seam(energies)
+        draw_seam(result, seam)
+        result = remove_vertical_seam(result, seam)
 
     cv2.imshow('removed', result)
     cv2.waitKey(0)
@@ -142,7 +153,7 @@ if __name__ == '__main__':
     # draw_seam(img, seam)
     #
     # removed = remove_seam(img, seam)
-    resize(img)
+    resize(img, int(sys.argv[2]), int(sys.argv[3]))
 
     # cv2.imshow('removed', removed)
     # cv2.waitKey(0)
