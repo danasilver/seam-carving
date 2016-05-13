@@ -7,14 +7,12 @@ def gaussian_blur(img):
     return cv2.GaussianBlur(img, (3, 3), 0, 0)
 
 def x_gradient(img):
-    gradient = cv2.Sobel(img, cv2.CV_64F, 1, 0, ksize=3,
-                         scale=1, delta=0, borderType=cv2.BORDER_DEFAULT)
-    return gradient
+    return cv2.Sobel(img, cv2.CV_64F, 1, 0, ksize=3,
+                     scale=1, delta=0, borderType=cv2.BORDER_DEFAULT)
 
 def y_gradient(img):
-    gradient =  cv2.Sobel(img, cv2.CV_64F, 0, 1, ksize=3,
-                          scale=1, delta=0, borderType=cv2.BORDER_DEFAULT)
-    return gradient
+    return cv2.Sobel(img, cv2.CV_64F, 0, 1, ksize=3,
+                     scale=1, delta=0, borderType=cv2.BORDER_DEFAULT)
 
 def grayscale(img):
     return cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
@@ -33,19 +31,13 @@ def cumulative_energies(energy):
 
     for i in xrange(1, height):
         for j in xrange(width):
-            previous = []
-            previous.append(energies[i - 1, j])
+            left = energies[i - 1, j - 1] if j - 1 >= 0 else 1e6
+            middle = energies[i - 1, j]
+            right = energies[i - 1, j + 1] if j + 1 < width else 1e6
 
-            if j - 1 >= 0:
-                previous.append(energies[i - 1, j - 1])
-
-            if j + 1 < width:
-                previous.append(energies[i - 1, j + 1])
-
-            energies[i, j] = energy[i, j] + min(previous)
+            energies[i, j] = energy[i, j] + min(left, middle, right)
 
     return energies
-
 
 def get_min_seam(energies):
     height, width = energies.shape[:2]
