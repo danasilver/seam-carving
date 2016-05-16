@@ -108,7 +108,7 @@ def remove_horizontal_seam(img, seam):
 
     for x, y in reversed(seam):
         removed[0:y, x] = img[0:y, x]
-        removed[y:width - 1, x] = img[y + 1:width, x]
+        removed[y:height - 1, x] = img[y + 1:height, x]
 
     return removed
 
