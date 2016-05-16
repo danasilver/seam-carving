@@ -1,4 +1,5 @@
 import cv2
+from cv2 import cv
 import numpy as np
 
 import sys
@@ -96,11 +97,13 @@ def vertical_seam(energies):
 
     return seam
 
-def draw_seam(img, seam):
+def draw_seam(img, seam, interactive=False):
     cv2.polylines(img, np.int32([np.asarray(seam)]), False, (0, 255, 0))
     cv2.imshow('seam', img)
     cv2.waitKey(1)
-    cv2.destroyAllWindows()
+
+    if not interactive:
+        cv2.destroyAllWindows()
 
 def remove_horizontal_seam(img, seam):
     height, width, bands = img.shape
@@ -122,10 +125,38 @@ def remove_vertical_seam(img, seam):
 
     return removed
 
-def resize(img, width, height):
+def window_callback(event, x, y, flags, param):
+    """
+    Mouse callback function.
+    Get the points from mouse clicks.
+    """
+    global mx, my
+
+    if event == cv2.EVENT_LBUTTONUP:
+        mx, my = x, y
+        print 'Clicked {} x {}.'.format(mx, my)
+
+def resize(img, width=None, height=None, interactive=False):
     result = img
 
     img_height, img_width = img.shape[:2]
+
+    if interactive:
+        global mx, my
+        mx, my = img_width, img_height
+
+        cv2.namedWindow('seam', cv.CV_WINDOW_AUTOSIZE)
+        cv.SetMouseCallback('seam', window_callback, img)
+        cv2.imshow('seam', result)
+        cv2.waitKey(0)
+
+        print 'Resizing to {} (width) x {} (height).'.format(mx, my)
+
+    if height is None:
+        height = my
+
+    if width is None:
+        width = mx
 
     dy = img_height - height if img_height - height > 0 else 0
     dx = img_width - width if img_width - width > 0 else 0
@@ -133,26 +164,41 @@ def resize(img, width, height):
     for i in xrange(dy):
         energies = cumulative_energies_horizontal(energy(result))
         seam = horizontal_seam(energies)
-        draw_seam(result, seam)
+        draw_seam(result, seam, interactive=interactive)
         result = remove_horizontal_seam(result, seam)
 
     for i in xrange(dx):
         energies = cumulative_energies_vertical(energy(result))
         seam = vertical_seam(energies)
-        draw_seam(result, seam)
+        draw_seam(result, seam, interactive=interactive)
         result = remove_vertical_seam(result, seam)
 
-    cv2.imshow('resized', result)
+    # cv2.imwrite('resized.jpg', result)
+
+    print 'Press any key to close the window.'
+
+    cv2.imshow('seam', result)
     cv2.waitKey(0)
     cv2.destroyAllWindows()
 
 def usage(program_name):
-    print 'Usage: python {} image new_width new_height'.format(program_name)
+    print '''Usage: python {} image [--interactive] [new_width new_height]
+
+    --interactive        After starting the program, click in the window to pick
+                         the height and width to resize to. Once you've made
+                         your final selection, press any key to start the seam
+                         carving process.
+    new_width            The width to resize the image to.
+    new_height           The height to resize the image to.
+    '''.format(program_name)
 
 if __name__ == '__main__':
-    if len(sys.argv) != 4:
+    img = cv2.imread(sys.argv[1])
+
+    if len(sys.argv) == 3 and sys.argv[2] == '--interactive':
+        resize(img, interactive=True)
+    elif len(sys.argv) == 4:
+        resize(img, width=int(sys.argv[2]), height=int(sys.argv[3]))
+    else:
         usage(sys.argv[0])
         sys.exit(1)
-
-    img = cv2.imread(sys.argv[1])
-    resize(img, int(sys.argv[2]), int(sys.argv[3]))
