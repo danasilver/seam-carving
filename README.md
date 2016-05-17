@@ -1,5 +1,11 @@
 ## Seam Carving
 
+Middlebury College CS453 (Computer Vision) Final Project
+
+Dana Silver and Shannon Ovitt
+
+[Final Report](http://www.cs.middlebury.edu/~dsilver/vision/seam-carving/)
+
 ### Install OpenCV
 
 On OS X:
@@ -13,6 +19,8 @@ $ brew install opencv
 
 ### Usage
 
+Non-interactive usage:
+
 ```sh
 $ python seamcarve.py image width height
 ```
@@ -21,8 +29,18 @@ $ python seamcarve.py image width height
 * `width` the new width for the image, smaller than the image's width
 * `height` the new height for the image, smaller than the image's height
 
-This will open a new window that will animate the seams being removed.
+Interactive usage:
+
+```sh
+$ python seamcarve.py image --interactive
+```
+
+Both options will open a new window that will animate the seams being removed.
 Press any key when the animation is done to close the window.
+
+See the
+[final report](http://www.cs.middlebury.edu/~dsilver/vision/seam-carving/)
+for full implementation details and results.
 
 ### References
 
